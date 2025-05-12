@@ -1,4 +1,6 @@
 # modules/recon_sysinfo.py
+import logging
+from datetime import datetime
 import platform
 
 def run():
