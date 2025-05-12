@@ -1,90 +1,98 @@
-# core/memory/scanner.py
-
+import os
+import time
 import psutil
 import ctypes
-import os
-import re
-from core.memory.models import MemoryRegion, TargetProcess
-from core.memory.stealth_utils import stealth_log
+import random
+from termcolor import colored
 
-class MemoryScanner:
-    def __init__(self, config):
-        self.config = config
+from nebula_core.stealth_utils import (
+    is_debugger_present,
+    throttle_activity,
+    find_low_profile_targets,
+    ptrace_attach,
+    ptrace_detach,
+    stealthy_mmap
+)
+from nebula_core.heuristics import analyze_memory
 
-    def list_target_processes(self):
-        """List all processes that are not system-critical and are potential injection targets."""
-        target_procs = []
 
-        for proc in psutil.process_iter(['pid', 'name', 'username']):
-            try:
-                if self._is_suspicious_process(proc):
-                    target_procs.append(TargetProcess(proc.pid, proc.name()))
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                continue
-        
-        return target_procs
+def read_process_memory(pid, mem_path="/proc/{}/mem", maps_path="/proc/{}/maps"):
+    """
+    Reads memory from a process identified by its PID.
+    Returns a list of memory chunks (start_address, data).
+    """
+    memory_data = []
+    try:
+        ptrace_attach(pid)
+        with open(mem_path.format(pid), 'rb', 0) as mem_file, open(maps_path.format(pid), 'r') as maps_file:
+            for line in maps_file:
+                try:
+                    if 'r' not in line.split(' ')[1]:  # Skip non-readable segments
+                        continue
+                    start, end = [int(x, 16) for x in line.split(' ')[0].split('-')]
+                    mem_file.seek(start)
+                    data = mem_file.read(end - start)
+                    memory_data.append((start, data))
+                except Exception as e:
+                    print(colored(f"[!] Error reading memory range {hex(start)}-{hex(end)}: {e}", 'red'))
+                    continue
+    except Exception as e:
+        print(colored(f"[!] Failed to attach to PID {pid}: {e}", 'red'))
+    finally:
+        ptrace_detach(pid)
 
-    def _is_suspicious_process(self, proc):
-        """Heuristics to filter system vs non-system processes"""
-        name = proc.info['name'] or ""
-        username = proc.info.get('username', '')
+    return memory_data
 
-        # Ignore root/system daemons unless explicitly enabled
-        if username in ("root", "SYSTEM") and not self.config.include_root_processes:
-            return False
 
-        # Filter out known good processes
-        known_safe = ['sshd', 'init', 'systemd', 'cron', 'bash', 'zsh', 'explorer.exe']
-        if any(ks in name.lower() for ks in known_safe):
-            return False
+def scan_memory(stealth: bool = False):
+    """
+    Scans processes in a stealthy or verbose manner.
+    Returns a list of suspicious memory analysis results.
+    """
+    if is_debugger_present():
+        if not stealth:
+            print(colored("[x] Exiting: Debugger detected.", 'red'))
+        return []
 
-        return True
+    if not stealth:
+        print(colored("[+] Starting ultra-covert memory scan...", 'green'))
 
-    def get_memory_regions(self, target_proc):
-        """Extract memory map for a given process ID and filter based on scan criteria."""
-        pid = target_proc.pid
-        regions = []
+    targets = find_low_profile_targets()
+    results = []
 
-        maps_path = f"/proc/{pid}/maps"
-        mem_path = f"/proc/{pid}/mem"
-
-        if not os.path.exists(maps_path) or not os.path.exists(mem_path):
-            stealth_log(f"[x] Cannot access memory of PID {pid}", level="debug")
-            return regions
+    for pid in targets:
+        if not stealth:
+            print(colored(f"[•] Scanning PID {pid}...", 'blue'))
 
         try:
-            with open(maps_path, 'r') as maps_file:
-                for line in maps_file:
-                    region = self._parse_maps_line(line)
-                    if region and self._is_suspicious_region(region):
-                        regions.append(region)
+            mem_chunks = read_process_memory(pid)
+            for addr, chunk in mem_chunks:
+                analysis = analyze_memory(chunk)
 
-            return regions
+                if analysis.get("anomalies"):
+                    results.append({
+                        "pid": pid,
+                        "address": hex(addr),
+                        "flags": analysis["anomalies"],
+                        "summary": analysis["summary"]
+                    })
         except Exception as e:
-            stealth_log(f"[!] Failed reading memory maps for {pid}: {e}", level="debug")
-            return []
+            if not stealth:
+                print(colored(f"[!] Scan failed on PID {pid}: {e}", 'red'))
 
-    def _parse_maps_line(self, line):
-        """Parses a line from /proc/PID/maps into a MemoryRegion object"""
-        try:
-            addr_range, perms, offset, dev, inode, *pathname = line.strip().split()
-            start, end = [int(x, 16) for x in addr_range.split('-')]
+        throttle_activity()
 
-            return MemoryRegion(
-                start=start,
-                end=end,
-                perms=perms,
-                pathname=' '.join(pathname) if pathname else ''
-            )
-        except Exception:
-            return None
+    if not stealth:
+        if results:
+            print(colored(f"[✓] Scan complete. {len(results)} suspicious findings.", 'green'))
+            for result in results:
+                print(colored(f"  ↳ PID {result['pid']} @ {result['address']}: {result['summary']} [{result['flags']}]", 'yellow'))
+        else:
+            print(colored("[✓] Scan complete. No suspicious findings.", 'green'))
 
-    def _is_suspicious_region(self, region):
-        """Detect memory regions with RWX permissions or unknown pathnames"""
-        if "x" in region.perms and "w" in region.perms:
-            return True  # Likely shellcode or injected payload
-        if region.pathname == "" and "x" in region.perms:
-            return True  # Executable with no backing file (e.g., injected)
-        if "[stack]" in region.pathname or "[heap]" in region.pathname:
-            return False
-        return False
+    return results
+
+
+if __name__ == "__main__":
+    scan_memory(stealth=False)
+

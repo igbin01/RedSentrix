@@ -1,9 +1,6 @@
-# nebula_core/memory/heuristics.py
-
 import re
 import math
 import hashlib
-import string
 from typing import List
 from .models import MemoryRegion, ScanResult
 
@@ -36,20 +33,41 @@ def compute_entropy(data: bytes) -> float:
 def detect_suspicious_patterns(memory: bytes) -> List[str]:
     """ Detect suspicious patterns in the memory dump """
     found_patterns = []
-    for pattern in SUSPICIOUS_PATTERNS:
+    for pattern in SUSPICIOUS_PATTERNS:   
         if pattern in memory:
             found_patterns.append(f"Pattern {pattern.hex()} detected")
     return found_patterns
+
+
+def analyze_memory(memory_data: bytes) -> dict:
+    """ Analyze memory and return structured results with summary """
+    anomalies = []
+
+    if b"\x90" * 10 in memory_data:
+        anomalies.append("Suspicious NOP sled detected (possible shellcode)")
+
+    if b"MZ" in memory_data and b"PE" in memory_data:
+        anomalies.append("PE header found in memory (possible code injection)")
+
+    if len(set(memory_data)) / len(memory_data) < 0.1:
+        anomalies.append("Low entropy region detected (possible packed payload)")
+
+    summary = "Anomalies found" if anomalies else "Clean"
+    return {
+        "summary": summary,
+        "anomalies": anomalies
+    }
 
 
 def analyze_memory_region(region: MemoryRegion, memory_data: bytes) -> ScanResult:
     """ Analyze the memory region for anomalies like injected code """
     entropy_score = compute_entropy(memory_data)
     suspicious_patterns = detect_suspicious_patterns(memory_data)
+    memory_anomalies = analyze_memory(memory_data)
 
     scan_result = ScanResult(
         region=region,
-        suspicious_patterns=suspicious_patterns,
+        suspicious_patterns=suspicious_patterns + memory_anomalies,
         entropy_score=entropy_score
     )
 
@@ -73,3 +91,4 @@ def analyze_process_memory(pid: int, process_memory: List[MemoryRegion]) -> List
 def filter_results_by_entropy(scan_results: List[ScanResult], threshold: float = 7.0) -> List[ScanResult]:
     """ Filter scan results by entropy score to detect highly compressed/injected code """
     return [result for result in scan_results if result.entropy_score > threshold]
+
