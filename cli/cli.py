@@ -10,7 +10,7 @@ from nebula_core.core import NebulaCore
 import sys
 
 def main():
-    print("\n🌀 Welcome to Nebula Drift CLI 🌀")
+    print("\n🌀 Welcome to RedSentrix CLI 🌀")
     nebula = NebulaCore()
 
     if len(sys.argv) < 2:

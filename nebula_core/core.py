@@ -71,7 +71,7 @@ class NebulaCore:
 
     def run(self):
         """Run all loaded modules."""
-        print("Nebula Drift is running...")
+        print("RedSentrix is running...")
         for name, module in self.modules.items():
             try:
                 module.run()

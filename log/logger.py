@@ -2,7 +2,7 @@
 import logging
 
 def setup_logger():
-    logger = logging.getLogger('Nebula Drift')
+    logger = logging.getLogger('RedSentrix')
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
