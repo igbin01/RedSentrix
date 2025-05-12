@@ -4,9 +4,9 @@ import os
 # Add the project root directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from nebula_core.core import NebulaCore
+from RedSentrix.core import NebulaCore
 
-from nebula_core.core import NebulaCore
+from RedSentrix.core import NebulaCore
 import sys
 
 def main():
