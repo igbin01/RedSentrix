@@ -30,3 +30,35 @@
 [2025-05-12 10:36:54] stealth_mem_scanner: Module executed successfully.
 [2025-05-12 10:36:54] kernel_exploit_enumerator: Module loaded successfully.
 [2025-05-12 10:36:54] kernel_exploit_enumerator: Module executed successfully.
+[2025-05-12 10:48:00] rootkit_detector: Module loaded successfully.
+[2025-05-12 10:48:00] rootkit_detector: Module executed successfully.
+[2025-05-12 10:55:58] stealth_memory_scanner: Module loaded successfully.
+[2025-05-12 10:55:58] stealth_memory_scanner: Module executed successfully.
+[2025-05-12 10:57:37] stealth_memory_scanner: Module loaded successfully.
+[2025-05-12 10:57:37] stealth_memory_scanner: Module executed successfully.
+[2025-05-12 10:57:37] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 10:57:37] kernel_exploit_enumerator: Module executed successfully.
+[2025-05-12 11:08:42] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:08:42] kernel_exploit_enumerator: Execution failed: name 'requests' is not defined
+[2025-05-12 11:10:23] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:10:23] kernel_exploit_enumerator: Execution failed: name 'requests' is not defined
+[2025-05-12 11:11:10] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:11:10] kernel_exploit_enumerator: Execution failed: name 'requests' is not defined
+[2025-05-12 11:15:05] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:15:07] kernel_exploit_enumerator: Module executed successfully.
+[2025-05-12 11:17:40] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:17:42] kernel_exploit_enumerator: Module executed successfully.
+[2025-05-12 11:19:56] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:19:58] kernel_exploit_enumerator: Module executed successfully.
+[2025-05-12 11:21:44] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:21:45] kernel_exploit_enumerator: Module executed successfully.
+[2025-05-12 11:44:40] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:44:40] kernel_exploit_enumerator: Execution failed: module 'modules.kernel_exploit_enumerator' has no attribute 'run'
+[2025-05-12 11:44:52] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:44:52] kernel_exploit_enumerator: Execution failed: module 'modules.kernel_exploit_enumerator' has no attribute 'run'
+[2025-05-12 11:45:58] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 11:45:58] kernel_exploit_enumerator: Execution failed: module 'modules.kernel_exploit_enumerator' has no attribute 'run'
+[2025-05-12 12:10:05] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 12:10:05] kernel_exploit_enumerator: Execution failed: module 'modules.kernel_exploit_enumerator' has no attribute 'run'
+[2025-05-12 12:10:20] kernel_exploit_enumerator: Module loaded successfully.
+[2025-05-12 12:10:20] kernel_exploit_enumerator: Execution failed: module 'modules.kernel_exploit_enumerator' has no attribute 'run'
