@@ -1,0 +1,10 @@
+*.pyc
+__pycache__/
+*.log
+.env
+*.key
+*.crt
+*.pem
+.vscode/
+*.sqlite
+secrets/

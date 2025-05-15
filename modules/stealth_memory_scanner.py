@@ -1,35 +1,79 @@
-# modules/stealth_memory_scanner.py
 import psutil
 import ctypes
 import os
+from termcolor import colored
+from redsentrix_core.stealth_utils import throttle_activity, is_debugger_present
+from redsentrix_core.logger import StealthLogger
+
+logger = StealthLogger()
 
 # Access to system-level memory scanning
 libc = ctypes.CDLL("libc.so.6")
 
-def run():
+def check_process_memory(proc):
+    findings = []
+    
+    try:
+        # Filter out known safe processes like init and systemd
+        name = proc.info['name'].lower()
+        if "init" not in name and "systemd" not in name:
+            memory_usage = proc.info['memory_info'].rss  # Resident Set Size
+            if memory_usage > 50 * 1024**2:  # 50MB threshold
+                findings.append(f"[!] High memory usage in {proc.info['name']} (PID: {proc.info['pid']})")
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        pass
+    
+    return findings
+
+def scan_memory():
     findings = []
 
-    # Checking for suspicious processes (i.e., hidden in memory)
+    # Check processes for abnormal memory usage
     for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
-        try:
-            # Let's filter out the known safe processes
-            if "init" not in proc.info['name'].lower() and "systemd" not in proc.info['name'].lower():
-                # Scan memory usage for abnormal patterns or high consumption which could be malicious
-                memory_usage = proc.info['memory_info'].rss  # Resident Set Size (memory used)
-                if memory_usage > 50 * 1024**2:  # Processes using >50MB of memory
-                    findings.append(f"[!] High memory usage detected in process {proc.info['name']} (PID: {proc.info['pid']}).")
+        findings.extend(check_process_memory(proc))
 
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            pass
-
-    # Use more advanced scanning for anomalous code patterns
+    # Check memory maps for suspicious writable areas
     try:
         with open("/proc/self/maps", 'r') as f:
-            maps = f.readlines()
-            for line in maps:
-                if "rw-p" in line:  # Looking for readable/writable memory areas
-                    findings.append(f"[!] Suspicious memory area detected: {line.strip()}")
+            for line in f:
+                if "rw-p" in line:
+                    findings.append(f"[!] Suspicious memory area: {line.strip()}")
     except Exception as e:
-        findings.append(f"[!] Error scanning memory areas: {str(e)}")
+        findings.append(f"[!] Error reading memory maps: {str(e)}")
 
-    return "\n".join(findings) if findings else "[✓] No suspicious memory patterns detected."
+    return findings
+
+def run(stealth=False):
+    """
+    Executes the stealth memory scan.
+    """
+    if is_debugger_present():
+        if not stealth:
+            print(colored("[x] Exiting: Debugger detected.", 'red'))
+        return []
+
+    if not stealth:
+        print(colored("[+] Starting stealth memory scan...", 'green'))
+    else:
+        logger.log("stealth_memory_scanner", "Initiating ultra-covert memory scan...")
+
+    findings = scan_memory()
+
+    if stealth:
+        if findings:
+            logger.log("stealth_memory_scanner", "\n".join(findings))
+        else:
+            logger.log("stealth_memory_scanner", "No suspicious findings detected.")
+    else:
+        if findings:
+            print(colored(f"[✓] Scan complete. {len(findings)} suspicious findings.", 'green'))
+            for finding in findings:
+                print(colored(f"  ↳ {finding}", 'yellow'))
+        else:
+            print(colored("[✓] Scan complete. No suspicious findings.", 'green'))
+
+    throttle_activity()
+
+if __name__ == "__main__":
+    run(stealth=False)
+
