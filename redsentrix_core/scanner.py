@@ -6,7 +6,6 @@ import random
 from termcolor import colored
 
 from redsentrix_core.stealth_utils import (
-    is_debugger_present,
     throttle_activity,
     find_low_profile_targets,
     ptrace_attach,
@@ -37,15 +36,11 @@ def read_process_memory(pid, mem_path="/proc/{}/mem", maps_path="/proc/{}/maps")
         print(colored(f"[!] Failed to attach to PID {pid}: {e}", 'red'))
     finally:
         ptrace_detach(pid)
-
     return memory_data
 
 
 def scan_memory(stealth: bool = False):
-    if is_debugger_present():
-        if not stealth:
-            print(colored("[x] Exiting: Debugger detected.", 'red'))
-        return []
+    # Removed is_debugger_present import and check as it's not defined
 
     if not stealth:
         print(colored("[+] Starting ultra-covert memory scan...", 'green'))
@@ -93,3 +88,4 @@ def run_scan():
 
 if __name__ == "__main__":
     run_scan()
+

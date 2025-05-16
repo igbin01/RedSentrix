@@ -1,4 +1,4 @@
-from RedSentrix import scanner
+from redsentrix_core import scanner
 
 if __name__ == "__main__":
     print("\n🧠 Launching RedSentrix Stealth Memory Scanner...")
