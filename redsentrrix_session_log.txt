@@ -1,0 +1,10 @@
+[2025-05-27 04:00:41] Auto-selected current process PID: 339015
+[2025-05-27 04:00:41] YARA rules loaded successfully.
+[2025-05-27 04:00:44] Theme toggled to Dark mode.
+[2025-05-27 04:00:49] [Memory Scanner] Starting scan on PID 339015...
+[2025-05-27 04:00:55] [Memory Scanner] Skipped region 0x7fa3f1d3b000-0x7fa3f1d3f000: [Errno 5] Input/output error
+[2025-05-27 04:00:55] [Memory Scanner] Scan completed.
+[2025-05-27 04:01:07] [Persistence Checker] Checking persistence for PID 339015...
+[2025-05-27 04:01:09] [Persistence Checker] Check completed.
+[2025-05-27 04:01:15] [Behavior Generator] Generating behavior simulation for PID 339015...
+[2025-05-27 04:01:17] [Behavior Generator] Simulation completed.

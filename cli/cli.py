@@ -1,43 +1,36 @@
-import sys
-import os
-
-# Add the project root directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from RedSentrix.core import NebulaCore
-
-from RedSentrix.core import NebulaCore
+import argparse
+import importlib
 import sys
 
 def main():
-    print("\n🌀 Welcome to RedSentrix CLI 🌀")
-    nebula = NebulaCore()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("action", choices=["list", "run", "all"])
+    parser.add_argument("module", nargs="?")
 
-    if len(sys.argv) < 2:
-        print("Usage: python cli.py [module_name | list | all]")
-        return
+    args, unknown = parser.parse_known_args()
 
-    module_name = sys.argv[1]
+    if args.action == "run" and args.module:
+        try:
+            print(f"Attempting to load: {args.module}")
+            module = importlib.import_module(f"modules.{args.module}")
 
-    if module_name == 'list':
-        print("\n📦 Available Modules:")
-        for mod in nebula.discover_modules():
-            print(f"  - {mod}")
-        return
+            # Universal module argument parser
+            module_parser = argparse.ArgumentParser()
+            module_parser.add_argument("--process", help="Target process name")
+            module_parser.add_argument("--pattern", help="Pattern to search")
+            module_parser.add_argument("--pid", type=int, help="Target PID")
+            module_parser.add_argument("--covert", help="Encoding type (e.g., xor, base64)")
+            module_parser.add_argument("--key", help="Encoding key")
+            module_parser.add_argument("--entropy", action="store_true", help="Enable entropy scan mode")
 
-    if module_name == 'all':
-        modules = nebula.discover_modules()
-        for mod in modules:
-            print(f"[+] Loading and executing: {mod}")
-            nebula.load_module(mod)
-            nebula.execute_module(mod)
-        return
+            module_args = module_parser.parse_args(unknown)
 
-    # Load and execute a single module
-    print(f"[+] Loading module: {module_name}")
-    nebula.load_module(module_name)
-    print(f"[+] Executing module: {module_name}")
-    nebula.execute_module(module_name)
+            if hasattr(module, "main"):
+                module.main(module_args)
+            else:
+                print(f"Module {args.module} has no main(args) method.")
+        except Exception as e:
+            print(f"Error loading module {args.module}: {e}")
 
 if __name__ == "__main__":
     main()

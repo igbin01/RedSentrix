@@ -1,3 +1,5 @@
+# === main.py ===
+
 import os
 import importlib
 import subprocess
@@ -9,9 +11,8 @@ from redsentrix_core.stealth_utils import StealthUtils
 logger = StealthLogger()
 loaded_modules = set()
 
-# --- FIXED get_real_cpu_info method added directly ---
 def get_real_cpu_info():
-    """Robust CPU info extraction, confirmed to work via /proc/cpuinfo"""
+    """Robust CPU info extraction"""
     try:
         with open("/proc/cpuinfo", "r") as f:
             for line in f:
@@ -38,9 +39,8 @@ def get_real_cpu_info():
 
     return "Unknown"
 
-# --- Module loader ---
 def load_modules():
-    logger.log("main", "🔍 Scanning for modules...")
+    logger.log("main", "\U0001F50D Scanning for modules...")
     modules_path = "modules"
 
     for file in os.listdir(modules_path):
@@ -64,7 +64,6 @@ def load_modules():
                 logger.log("main", f"[!] Error loading {module_name}: {str(e)}")
                 continue
 
-# --- Main function ---
 def main():
     logger.log("main", "[+] Starting RedSentrix Framework...")
 
@@ -76,4 +75,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

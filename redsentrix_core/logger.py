@@ -1,22 +1,22 @@
-import os
-from datetime import datetime
+import logging
 
-class StealthLogger:
-    def __init__(self, log_dir='log', log_file='nebula.log'):
-        self.log_path = os.path.join(log_dir, log_file)
-        os.makedirs(log_dir, exist_ok=True)
+class Logger:
+    def __init__(self):
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s [%(levelname)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        self.logger = logging.getLogger("RedSentrix")
 
-    def log(self, module_name, message):
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        log_entry = f"[{timestamp}] {module_name}: {message}\n"
-
-        try:
-            with open(self.log_path, 'a') as log_file:
-                log_file.write(log_entry)
-        except Exception:
-            pass  # Silently fail — stealthy
-
-def setup():
-    global logger
-    logger = StealthLogger()
+    def log(self, message, level="info"):
+        level = level.lower()
+        if level == "info":
+            self.logger.info(message)
+        elif level in ("warn", "warning"):
+            self.logger.warning(message)
+        elif level == "error":
+            self.logger.error(message)
+        else:
+            self.logger.debug(message)
 

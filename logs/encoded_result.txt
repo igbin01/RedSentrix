@@ -1,0 +1,3 @@
+YARA match 'MatchMaliciousPattern' at region 0x295e0000-0x296d7000
+YARA match 'MatchMaliciousPattern' at region 0x7fe40c155000-0x7fe40c3b7000
+YARA match 'MatchMaliciousPattern' at region 0x7fe40c748000-0x7fe40c749000

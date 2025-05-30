@@ -1,10 +1,7 @@
-rule DummyTestRule
+rule MatchMaliciousPattern
 {
-    meta:
-        description = "Detects the test string in memory"
-        author = "RedSentrix"
     strings:
-        $a = "ThisIsATestString"
+        $a = "malicious_pattern"
     condition:
         $a
 }
