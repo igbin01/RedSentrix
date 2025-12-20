@@ -1,10 +1,68 @@
-*.pyc
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+myenv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
 *.log
-.env
+*.log.*
+logs/*.log
+logs/*.enc
+*.redlog
+session_log*.txt
+RedSentrixLogs_*.txt
+
+# Build artifacts
+build/phishing/proxy
+build/stealth/*.so
+build/stealth/*.dll
+build/stealth/*.o
+
+# Certificates and keys
+*.pem
 *.key
 *.crt
-*.pem
-.vscode/
-*.sqlite
-secrets/
+*.cert
+
+# Credentials
+creds.txt
+*.credentials
+*.env
+
+# Test files
+test_*.py
+*_test.py
+dummy_*
+malicious_*.bin
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Old files
+*.old
+*.backup
